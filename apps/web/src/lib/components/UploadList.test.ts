@@ -31,6 +31,7 @@ describe('UploadList', () => {
       onRetry,
     })
     expect(screen.getByText('Falhou')).toBeInTheDocument()
+    expect(screen.getByText('Arquivo grande demais')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
     expect(onRetry).toHaveBeenCalledWith(7)
   })

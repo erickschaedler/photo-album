@@ -53,6 +53,11 @@
       {/each}
     </select>
   </label>
+  {#if albums.isError}
+    <p class="mt-1 text-xs text-erro">
+      Não deu para carregar os álbuns — dá para enviar sem álbum mesmo assim.
+    </p>
+  {/if}
 
   <input
     bind:this={input}

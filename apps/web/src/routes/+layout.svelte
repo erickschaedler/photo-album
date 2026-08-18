@@ -26,11 +26,21 @@
       registerSW({ immediate: true })
     }
   })
+
+  // href precisa ser absoluto (deep links quebram com relativo) — pwaInfo.webManifest.href
+  // pode vir sem a barra inicial dependendo da rota atual.
+  const manifestHref = $derived(
+    pwaInfo
+      ? pwaInfo.webManifest.href.startsWith('/')
+        ? pwaInfo.webManifest.href
+        : `/${pwaInfo.webManifest.href}`
+      : '',
+  )
 </script>
 
 <svelte:head>
   {#if pwaInfo}
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href={manifestHref} />
   {/if}
 </svelte:head>
 
