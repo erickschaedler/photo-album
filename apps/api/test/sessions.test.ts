@@ -54,7 +54,7 @@ describe('sessions', () => {
     expect(rows).toHaveLength(0)
   })
 
-  it('renova sessão perto de expirar (sliding)', async () => {
+  it('renova sessão perto de expirar (sliding) e expõe renewedExpiresAt', async () => {
     const db = getDb(env.DB)
     await seedUser(db)
     const { token } = await createSession(db, 'u1')
@@ -62,9 +62,19 @@ describe('sessions', () => {
     const soon = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 dia
     await db.update(sessions).set({ expiresAt: soon }).where(eq(sessions.tokenHash, tokenHash))
 
-    await validateSessionToken(db, token)
+    const info = await validateSessionToken(db, token)
+    expect(info?.renewedExpiresAt).toBeInstanceOf(Date)
     const [row] = await db.select().from(sessions).where(eq(sessions.tokenHash, tokenHash))
+    expect(row!.expiresAt.getTime()).toBe(info!.renewedExpiresAt!.getTime())
     expect(row!.expiresAt.getTime()).toBeGreaterThan(soon.getTime())
+  })
+
+  it('sessão longe de expirar não é renovada (sem renewedExpiresAt)', async () => {
+    const db = getDb(env.DB)
+    await seedUser(db)
+    const { token } = await createSession(db, 'u1')
+    const info = await validateSessionToken(db, token)
+    expect(info?.renewedExpiresAt).toBeUndefined()
   })
 
   it('deleteSessionByToken invalida', async () => {

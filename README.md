@@ -40,3 +40,20 @@ pnpm test                            # suíte completa
 Para deploy automático a cada push, configure os secrets
 `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no GitHub (workflow em
 `.github/workflows/deploy.yml`).
+
+## Instalar no celular (PWA)
+
+Abra a URL da sua instância no navegador do celular:
+
+- **iPhone (Safari):** toque em Compartilhar → "Adicionar à Tela de Início".
+- **Android (Chrome):** toque no prompt de instalação que aparece
+  automaticamente, ou no menu ⋮ → "Instalar app" / "Adicionar à tela
+  inicial".
+
+O app abre em tela cheia, sem a barra do navegador, como qualquer outro
+app instalado.
+
+A primeira conta é criada em `/setup` (aparece automaticamente na
+primeira visita, antes de qualquer conta existir). A segunda pessoa do
+casal entra pelo link de convite gerado em **Ajustes** — basta abrir o
+link recebido e aceitar com seu nome, e-mail e senha.

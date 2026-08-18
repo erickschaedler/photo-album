@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/fraunces/wght-italic.css';
+@import '@fontsource-variable/instrument-sans';
+
+@theme {
+  --color-fundo: #141210;
+  --color-superficie: #1f1b18;
+  --color-borda: #35302b;
+  --color-texto: #ede6dc;
+  --color-texto-suave: #9a8f82;
+  --color-ambar: #e3a455;
+  --color-erro: #e06c5c;
+  --font-display: 'Fraunces Variable', georgia, serif;
+  --font-corpo: 'Instrument Sans Variable', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-fundo);
+    color: var(--color-texto);
+    font-family: var(--font-corpo);
+    -webkit-tap-highlight-color: transparent;
+  }
+}
