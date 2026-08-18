@@ -18,6 +18,8 @@ describe('GET /api/photos/:id/file|thumb', () => {
     expect(res.headers.get('content-type')).toBe('image/jpeg')
     expect(res.headers.get('cache-control')).toBe('private, max-age=31536000, immutable')
     expect(res.headers.get('etag')).toBe(`"${photo.id}-file"`)
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox")
     expect(new Uint8Array(await res.arrayBuffer())).toEqual(bytes)
 
     const thumb = await get(`/api/photos/${photo.id}/thumb`, cookie)
@@ -46,5 +48,21 @@ describe('GET /api/photos/:id/file|thumb', () => {
 
     await env.PHOTOS.delete(photoKeys(spaceId, photo.id).file)
     expect((await get(`/api/photos/${photo.id}/file`, cookie)).status).toBe(404)
+  })
+
+  it('clamps hostile content-type to application/octet-stream', async () => {
+    const { cookie, spaceId } = await setupSpace()
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 42])
+    const photo = await uploadPhoto(cookie, { fileBytes: bytes })
+
+    const keys = photoKeys(spaceId, photo.id)
+    await env.PHOTOS.put(keys.file, bytes, {
+      httpMetadata: { contentType: 'text/html' },
+    })
+
+    const res = await get(`/api/photos/${photo.id}/file`, cookie)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toBe('application/octet-stream')
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff')
   })
 })

@@ -211,9 +211,14 @@ async function servePhotoObject(c: Context<AppEnv>, kind: 'file' | 'thumb') {
   const object = await c.env.PHOTOS.get(kind === 'file' ? row.r2Key : row.thumbR2Key)
   if (!object) return apiError(c, 404, 'not_found', 'Arquivo não encontrado')
 
+  const raw = object.httpMetadata?.contentType ?? row.mime
+  const contentType = ALLOWED_MIMES.includes(raw) ? raw : 'application/octet-stream'
+
   return c.body(object.body, 200, {
-    'content-type': object.httpMetadata?.contentType ?? row.mime,
+    'content-type': contentType,
     'cache-control': 'private, max-age=31536000, immutable',
+    'x-content-type-options': 'nosniff',
+    'content-security-policy': "default-src 'none'; sandbox",
     etag,
   })
 }
