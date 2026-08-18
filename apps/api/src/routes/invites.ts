@@ -4,7 +4,7 @@ import { and, eq, gt, isNull } from 'drizzle-orm'
 import { zValidator } from '@hono/zod-validator'
 import { acceptInviteSchema } from '@photo-album/shared'
 import type { AppEnv } from '../index'
-import { getDb } from '../db'
+import { getDb, type Db } from '../db'
 import { invites, spaceMembers, spaces, users } from '../db/schema'
 import { generateToken, hashPassword, newId, sha256Hex } from '../lib/crypto'
 import { apiError } from '../lib/errors'
@@ -33,7 +33,7 @@ inviteRoutes.post('/', requireAuth, async (c) => {
   return c.json({ token, url: `/invite/${token}`, expiresAt: expiresAt.getTime() }, 201)
 })
 
-async function findValidInvite(db: ReturnType<typeof getDb>, token: string) {
+async function findValidInvite(db: Db, token: string) {
   const tokenHash = await sha256Hex(token)
   const [row] = await db
     .select({
@@ -80,19 +80,37 @@ inviteRoutes.post(
       .limit(1)
     if (existing.length > 0) return apiError(c, 409, 'email_in_use', 'E-mail já cadastrado')
 
+    // Atomically claim the invite before creating anything
     const now = new Date()
+    const claim = await db
+      .update(invites)
+      .set({ usedAt: now })
+      .where(and(eq(invites.id, row.id), isNull(invites.usedAt)))
+    if (claim.meta.changes === 0)
+      return apiError(c, 404, 'not_found', 'Convite inválido ou expirado')
+
     const userId = newId()
-    await db.insert(users).values({
-      id: userId,
-      name,
-      email,
-      passwordHash: await hashPassword(password),
-      createdAt: now,
-    })
+    try {
+      await db.insert(users).values({
+        id: userId,
+        name,
+        email,
+        passwordHash: await hashPassword(password),
+        createdAt: now,
+      })
+    } catch (err) {
+      // Handle unique constraint violation on email
+      if (err instanceof Error && err.message.includes('UNIQUE')) {
+        // Un-claim the invite
+        await db.update(invites).set({ usedAt: null }).where(eq(invites.id, row.id))
+        return apiError(c, 409, 'email_in_use', 'E-mail já cadastrado')
+      }
+      throw err
+    }
+
     await db
       .insert(spaceMembers)
       .values({ spaceId: row.spaceId, userId, role: 'member', joinedAt: now })
-    await db.update(invites).set({ usedAt: now }).where(eq(invites.id, row.id))
 
     const { token: session, expiresAt } = await createSession(db, userId)
     setCookie(c, SESSION_COOKIE, session, sessionCookieOptions(expiresAt))

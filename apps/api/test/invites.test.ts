@@ -46,11 +46,12 @@ describe('invites', () => {
   it('convite é de uso único', async () => {
     const { cookie } = await setupSpace()
     const inv = await createInvite(cookie)
-    await postJson(`/api/invites/${inv.token}/accept`, {
+    const first = await postJson(`/api/invites/${inv.token}/accept`, {
       name: 'A',
       email: 'a1@x.co',
       password: 'senha-123-abc',
     })
+    expect(first.status).toBe(201)
     const again = await postJson(`/api/invites/${inv.token}/accept`, {
       name: 'B',
       email: 'a2@x.co',
