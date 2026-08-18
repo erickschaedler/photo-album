@@ -20,8 +20,6 @@
     },
   })
 
-  const webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '')
-
   onMount(async () => {
     if (pwaInfo) {
       const { registerSW } = await import('virtual:pwa-register')
@@ -31,8 +29,9 @@
 </script>
 
 <svelte:head>
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -- linkTag é gerado pelo plugin, não é input de usuário -->
-  {@html webManifestLink}
+  {#if pwaInfo}
+    <link rel="manifest" href="/manifest.webmanifest" />
+  {/if}
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
