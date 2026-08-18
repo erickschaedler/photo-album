@@ -2,6 +2,13 @@
   "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
     "strict": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    // vite-plugin-pwa's dist/index.d.ts (pulled in just by importing SvelteKitPWA's options type
+    // in vite.config.ts) unconditionally references `@vite-pwa/assets-generator/api` (a package
+    // we don't install — we only use its CLI once, transiently, to generate the PNGs) and
+    // workbox-core's types.d.ts assumes the `webworker` lib (`ExtendableEvent`), which this
+    // browser-app tsconfig doesn't include. Both are errors in third-party .d.ts files, not in
+    // our source — skipLibCheck is the standard fix for exactly this class of problem.
+    "skipLibCheck": true
   }
 }
