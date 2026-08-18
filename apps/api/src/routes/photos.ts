@@ -1,6 +1,11 @@
 import { Hono } from 'hono'
-import { and, eq } from 'drizzle-orm'
-import { photoUploadFieldsSchema } from '@photo-album/shared'
+import { zValidator } from '@hono/zod-validator'
+import { and, desc, eq, lt, or } from 'drizzle-orm'
+import {
+  listPhotosQuerySchema,
+  movePhotoSchema,
+  photoUploadFieldsSchema,
+} from '@photo-album/shared'
 import type { ApiPhoto } from '@photo-album/shared'
 import type { AppEnv } from '../index'
 import { getDb } from '../db'
@@ -9,6 +14,7 @@ import { newId } from '../lib/crypto'
 import { apiError } from '../lib/errors'
 import { ALLOWED_MIMES, MAX_FILE_BYTES, MAX_THUMB_BYTES, photoKeys } from '../lib/r2'
 import { requireAuth } from '../middleware/auth'
+import { decodeCursor, encodeCursor } from '../lib/cursor'
 
 export const photoRoutes = new Hono<AppEnv>()
 
@@ -100,4 +106,89 @@ photoRoutes.post('/', async (c) => {
     throw err
   }
   return c.json(toApiPhoto(row), 201)
+})
+
+photoRoutes.get(
+  '/',
+  zValidator('query', listPhotosQuerySchema, (result, c) => {
+    if (!result.success) return apiError(c, 400, 'validation_error', 'Query inválida')
+  }),
+  async (c) => {
+    const db = getDb(c.env.DB)
+    const spaceId = c.get('membership').spaceId
+    const { cursor, limit, albumId } = c.req.valid('query')
+
+    const conditions = [eq(photos.spaceId, spaceId)]
+    if (albumId) conditions.push(eq(photos.albumId, albumId))
+    if (cursor !== undefined) {
+      const decoded = decodeCursor(cursor)
+      if (!decoded) return apiError(c, 400, 'validation_error', 'Cursor inválido')
+      const takenAt = new Date(decoded.takenAt)
+      const condition = or(
+        lt(photos.takenAt, takenAt),
+        and(eq(photos.takenAt, takenAt), lt(photos.id, decoded.id)),
+      )
+      if (condition) conditions.push(condition)
+    }
+
+    const rows = await db
+      .select()
+      .from(photos)
+      .where(and(...conditions))
+      .orderBy(desc(photos.takenAt), desc(photos.id))
+      .limit(limit + 1)
+
+    const items = rows.slice(0, limit)
+    const last = items[items.length - 1]
+    const nextCursor =
+      rows.length > limit && last ? encodeCursor(last.takenAt.getTime(), last.id) : null
+    return c.json({ items: items.map(toApiPhoto), nextCursor })
+  },
+)
+
+async function findPhoto(db: ReturnType<typeof getDb>, spaceId: string, id: string) {
+  const [row] = await db
+    .select()
+    .from(photos)
+    .where(and(eq(photos.id, id), eq(photos.spaceId, spaceId)))
+    .limit(1)
+  return row
+}
+
+photoRoutes.patch(
+  '/:id',
+  zValidator('json', movePhotoSchema, (result, c) => {
+    if (!result.success) return apiError(c, 400, 'validation_error', 'Dados inválidos')
+  }),
+  async (c) => {
+    const db = getDb(c.env.DB)
+    const spaceId = c.get('membership').spaceId
+    const row = await findPhoto(db, spaceId, c.req.param('id'))
+    if (!row) return apiError(c, 404, 'not_found', 'Foto não encontrada')
+
+    const { albumId } = c.req.valid('json')
+    if (albumId) {
+      const [album] = await db
+        .select({ id: albums.id })
+        .from(albums)
+        .where(and(eq(albums.id, albumId), eq(albums.spaceId, spaceId)))
+        .limit(1)
+      if (!album) return apiError(c, 400, 'validation_error', 'Álbum inválido')
+    }
+    await db
+      .update(photos)
+      .set({ albumId })
+      .where(and(eq(photos.id, row.id), eq(photos.spaceId, spaceId)))
+    return c.json(toApiPhoto({ ...row, albumId }))
+  },
+)
+
+photoRoutes.delete('/:id', async (c) => {
+  const db = getDb(c.env.DB)
+  const spaceId = c.get('membership').spaceId
+  const row = await findPhoto(db, spaceId, c.req.param('id'))
+  if (!row) return apiError(c, 404, 'not_found', 'Foto não encontrada')
+  await db.delete(photos).where(and(eq(photos.id, row.id), eq(photos.spaceId, spaceId)))
+  await c.env.PHOTOS.delete([row.r2Key, row.thumbR2Key])
+  return c.body(null, 204)
 })
