@@ -190,6 +190,10 @@ photoRoutes.delete('/:id', async (c) => {
   const row = await findPhoto(db, spaceId, c.req.param('id'))
   if (!row) return apiError(c, 404, 'not_found', 'Foto não encontrada')
   await db.delete(photos).where(and(eq(photos.id, row.id), eq(photos.spaceId, spaceId)))
+  await db
+    .update(albums)
+    .set({ coverPhotoId: null })
+    .where(and(eq(albums.coverPhotoId, row.id), eq(albums.spaceId, spaceId)))
   await c.env.PHOTOS.delete([row.r2Key, row.thumbR2Key])
   return c.body(null, 204)
 })

@@ -72,6 +72,12 @@ describe('GET /api/photos', () => {
     const other = await getJson('/api/photos', intruder.cookie)
     expect(((await other.json()) as { items: unknown[] }).items).toHaveLength(0)
   })
+
+  it('albumId vazio na query → 400 (não vira "sem filtro")', async () => {
+    const { cookie } = await setupSpace()
+    const res = await getJson('/api/photos?albumId=', cookie)
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('PATCH e DELETE /api/photos/:id', () => {
@@ -85,6 +91,13 @@ describe('PATCH e DELETE /api/photos/:id', () => {
     expect(((await moved.json()) as { albumId: string | null }).albumId).toBe(album.id)
     const back = await patchJson(`/api/photos/${photo.id}`, { albumId: null }, cookie)
     expect(((await back.json()) as { albumId: string | null }).albumId).toBeNull()
+  })
+
+  it('albumId vazio no PATCH → 400 (não bypassa validação do álbum)', async () => {
+    const { cookie } = await setupSpace()
+    const photo = await uploadPhoto(cookie)
+    const res = await patchJson(`/api/photos/${photo.id}`, { albumId: '' }, cookie)
+    expect(res.status).toBe(400)
   })
 
   it('DELETE apaga linha e objetos do R2; intruso recebe 404 e nada muda', async () => {
@@ -101,5 +114,26 @@ describe('PATCH e DELETE /api/photos/:id', () => {
     expect(await env.PHOTOS.get(keys.thumb)).toBeNull()
     const list = await getJson('/api/photos', cookie)
     expect(((await list.json()) as { items: unknown[] }).items).toHaveLength(0)
+  })
+
+  it('DELETE de foto que é capa de álbum limpa coverPhotoId', async () => {
+    const { cookie } = await setupSpace()
+    const created = await postJson('/api/albums', { title: 'A' }, cookie)
+    const album = (await created.json()) as { id: string }
+    const photo = await uploadPhoto(cookie)
+
+    const withCover = await patchJson(`/api/albums/${album.id}`, { coverPhotoId: photo.id }, cookie)
+    expect(((await withCover.json()) as { coverPhotoId: string | null }).coverPhotoId).toBe(
+      photo.id,
+    )
+
+    expect((await del(`/api/photos/${photo.id}`, cookie)).status).toBe(204)
+
+    const albumsRes = await getJson('/api/albums', cookie)
+    const { items } = (await albumsRes.json()) as {
+      items: { id: string; coverPhotoId: string | null }[]
+    }
+    const updatedAlbum = items.find((a) => a.id === album.id)
+    expect(updatedAlbum?.coverPhotoId).toBeNull()
   })
 })

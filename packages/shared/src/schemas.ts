@@ -33,15 +33,15 @@ export const photoUploadFieldsSchema = z.object({
   takenAt: z.coerce.number().int().positive().optional(),
   width: z.coerce.number().int().positive(),
   height: z.coerce.number().int().positive(),
-  albumId: z.string().optional(),
+  albumId: z.string().min(1).optional(),
 })
 
 export const listPhotosQuerySchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
-  albumId: z.string().optional(),
+  albumId: z.string().min(1).optional(),
 })
 
 export const movePhotoSchema = z.object({
-  albumId: z.string().nullable(),
+  albumId: z.string().min(1).nullable(),
 })

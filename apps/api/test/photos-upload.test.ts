@@ -78,4 +78,9 @@ describe('POST /api/photos', () => {
 
     await expect(uploadPhoto(cookie, { albumId: foreignAlbum.id })).rejects.toThrow(/400/)
   })
+
+  it('albumId vazio no multipart → 400 (não bypassa validação do álbum)', async () => {
+    const { cookie } = await setupSpace()
+    await expect(uploadPhoto(cookie, { albumId: '' })).rejects.toThrow(/400/)
+  })
 })
