@@ -45,11 +45,21 @@
   }))
 
   const dateFormat = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' })
+
+  let dialogEl = $state<HTMLElement | null>(null)
+
+  $effect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    dialogEl?.focus()
+    return () => previous?.focus()
+  })
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
 
 <div
+  bind:this={dialogEl}
+  tabindex="-1"
   class="fixed inset-0 z-40 flex flex-col bg-fundo/95 backdrop-blur"
   role="dialog"
   aria-modal="true"
