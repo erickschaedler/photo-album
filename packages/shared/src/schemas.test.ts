@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { listPhotosQuerySchema, photoUploadFieldsSchema, setupSchema } from './schemas'
+import {
+  listPhotosQuerySchema,
+  movePhotoSchema,
+  photoUploadFieldsSchema,
+  setupSchema,
+} from './schemas'
 
 describe('setupSchema', () => {
   it('aceita payload válido e normaliza o e-mail', () => {
@@ -34,5 +39,12 @@ describe('listPhotosQuerySchema', () => {
   it('aplica default de limit e o teto de 100', () => {
     expect(listPhotosQuerySchema.parse({}).limit).toBe(50)
     expect(() => listPhotosQuerySchema.parse({ limit: '101' })).toThrow()
+  })
+})
+
+describe('movePhotoSchema', () => {
+  it('rejeita albumId vazio e aceita null para desassociar', () => {
+    expect(() => movePhotoSchema.parse({ albumId: '' })).toThrow()
+    expect(movePhotoSchema.parse({ albumId: null }).albumId).toBeNull()
   })
 })
