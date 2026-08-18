@@ -67,12 +67,14 @@ npx wrangler d1 migrations apply photo-album --local       # aplicar migration n
   no `eslint.config.js` (`.wrangler/` já está).
 - Prettier formata `.svelte` via `prettier-plugin-svelte` (root). `eslint-plugin-svelte`
   instalado no Plano 2: o bloco de parser TS precisa incluir `**/*.svelte.ts`; a regra
-  `svelte/no-navigation-without-resolve` fica desativada (rotas estáticas do SPA).
+  `svelte/no-navigation-without-resolve` desativada durante a construção incremental das rotas
+  do Plano 2 — todas já existem; reavaliar reativar (ver comentário no `eslint.config.js`).
 - `beforeEach`/`afterEach` do vitest: arrow function com retorno implícito de um mock
   (chainable) vira cleanup e reinvoca o mock após o teste (unhandled rejection) — usar corpo
   em bloco (`{ ... }`) sempre que o corpo retornar algo "por acidente".
-- O caminho do repo tem espaço (`Photo Album`): o alias `$lib` no `vitest.config.ts` do web usa
-  `import.meta.dirname`, não `new URL(...).pathname` (que codificaria o espaço como `%20`).
+- O caminho do repo tem espaço (`Photo Album`): o alias `$lib` no `apps/web/vite.config.ts`
+  (config unificada Vite+Vitest do web) usa `import.meta.dirname`, não `new URL(...).pathname`
+  (que codificaria o espaço como `%20`).
 - `@vite-pwa/sveltekit@1.1` com Vite 7: `kit.spa: true` dá `ENOENT` no `version.json` — usar
   `kit.spa.fallbackRevision`; `workbox-window` precisa ser dependência runtime (não só dev).
 - `skipLibCheck: true` no `tsconfig` do web silencia erros de `.d.ts` de terceiros
