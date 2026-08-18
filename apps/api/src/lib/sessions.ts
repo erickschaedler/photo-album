@@ -10,6 +10,7 @@ export const SESSION_RENEW_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000
 export interface SessionInfo {
   user: { id: string; name: string; email: string }
   membership: { spaceId: string; role: 'owner' | 'member' }
+  renewedExpiresAt?: Date
 }
 
 export async function createSession(db: Db, userId: string) {
@@ -49,15 +50,18 @@ export async function validateSessionToken(db: Db, token: string): Promise<Sessi
     await db.delete(sessions).where(eq(sessions.id, row.sessionId))
     return null
   }
+  let renewedExpiresAt: Date | undefined
   if (row.expiresAt.getTime() - now < SESSION_RENEW_THRESHOLD_MS) {
+    renewedExpiresAt = new Date(now + SESSION_TTL_MS)
     await db
       .update(sessions)
-      .set({ expiresAt: new Date(now + SESSION_TTL_MS) })
+      .set({ expiresAt: renewedExpiresAt })
       .where(eq(sessions.id, row.sessionId))
   }
   return {
     user: { id: row.userId, name: row.name, email: row.email },
     membership: { spaceId: row.spaceId, role: row.role },
+    ...(renewedExpiresAt ? { renewedExpiresAt } : {}),
   }
 }
 

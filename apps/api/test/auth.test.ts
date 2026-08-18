@@ -1,4 +1,7 @@
+import { env } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
+import { getDb } from '../src/db'
+import { sessions } from '../src/db/schema'
 import { extractSessionCookie, getJson, postJson, setupSpace } from './helpers'
 
 describe('auth', () => {
@@ -49,5 +52,29 @@ describe('auth', () => {
     expect(out.status).toBe(204)
     const me = await getJson('/api/auth/me', cookie)
     expect(me.status).toBe(401)
+  })
+})
+
+describe('renovação deslizante re-emite o cookie', () => {
+  it('sessão perto de expirar → GET /api/auth/me devolve set-cookie com validade nova', async () => {
+    const { cookie } = await setupSpace()
+    const db = getDb(env.DB)
+    const soon = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    await db.update(sessions).set({ expiresAt: soon })
+
+    const res = await getJson('/api/auth/me', cookie)
+    expect(res.status).toBe(200)
+    const setCookie = res.headers.get('set-cookie') ?? ''
+    expect(setCookie).toContain(cookie) // mesmo token: "session=<token>"
+    expect(setCookie).toContain('HttpOnly')
+    const expires = new Date(/expires=([^;]+)/i.exec(setCookie)![1]!)
+    expect(expires.getTime()).toBeGreaterThan(soon.getTime())
+  })
+
+  it('sessão recém-criada → sem set-cookie no /me', async () => {
+    const { cookie } = await setupSpace()
+    const res = await getJson('/api/auth/me', cookie)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('set-cookie')).toBeNull()
   })
 })
