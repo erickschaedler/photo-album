@@ -4,6 +4,7 @@ import { authRoutes } from './routes/auth'
 import { setupRoutes } from './routes/setup'
 import { inviteRoutes } from './routes/invites'
 import { albumRoutes } from './routes/albums'
+import { photoRoutes } from './routes/photos'
 
 export interface AppVariables {
   user: { id: string; name: string; email: string }
@@ -24,6 +25,7 @@ app.route('/api/auth', authRoutes)
 app.route('/api/setup', setupRoutes)
 app.route('/api/invites', inviteRoutes)
 app.route('/api/albums', albumRoutes)
+app.route('/api/photos', photoRoutes)
 
 app.notFound((c) => apiError(c, 404, 'not_found', 'Recurso não encontrado'))
 
