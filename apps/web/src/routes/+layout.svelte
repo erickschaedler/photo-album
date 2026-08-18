@@ -1,5 +1,7 @@
 <script lang="ts">
   import '../app.css'
+  import { onMount } from 'svelte'
+  import { pwaInfo } from 'virtual:pwa-info'
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
   import { ApiError } from '$lib/api/client'
   import Toast from '$lib/components/Toast.svelte'
@@ -16,7 +18,21 @@
       },
     },
   })
+
+  const webManifestLink = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '')
+
+  onMount(async () => {
+    if (pwaInfo) {
+      const { registerSW } = await import('virtual:pwa-register')
+      registerSW({ immediate: true })
+    }
+  })
 </script>
+
+<svelte:head>
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -- linkTag é gerado pelo plugin, não é input de usuário -->
+  {@html webManifestLink}
+</svelte:head>
 
 <QueryClientProvider client={queryClient}>
   {@render children()}
