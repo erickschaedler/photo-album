@@ -16,13 +16,18 @@ export default tseslint.config(
   ...tseslint.configs.recommended.map((c) => ({ ...c, files: ['**/*.ts', '**/*.svelte.ts'] })),
   ...svelte.configs.recommended,
   {
-    files: ['**/*.svelte'],
+    files: ['**/*.svelte', '**/*.svelte.ts'],
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.svelte'],
         svelteConfig,
       },
+    },
+  },
+  {
+    rules: {
+      'svelte/no-navigation-without-resolve': 'off',
     },
   },
 )
