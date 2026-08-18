@@ -10,9 +10,12 @@ estáticos no resto.
 
 - **Produção:** https://photo-album.photo-album-api.workers.dev
 - **Spec da v1:** `docs/superpowers/specs/2026-08-17-photo-album-design.md`
-- **Status:** Plano 1 (fundação + API) concluído e no ar em 18/08/2026 — API completa e testada,
-  shell mínimo do web, CI/deploy automáticos. **Próximo: Plano 2** — o PWA de verdade
-  (telas de auth/timeline/upload com fila/álbuns, Tailwind, TanStack Query, `@vite-pwa/sveltekit`).
+- **Status:** Plano 1 (fundação + API) concluído em 18/08/2026. Plano 2 (PWA de verdade)
+  concluído em 18/08/2026 — telas de auth (setup/login/convite), timeline agrupada por mês,
+  upload com fila e processamento de imagem no navegador, álbuns (criar/renomear/excluir/capa),
+  ajustes (perfil, convite, logout) e PWA instalável (manifest + service worker via
+  `@vite-pwa/sveltekit`). Falta deploy/produção — **Task 17**: rodar o setup inicial no Worker
+  de produção e medir a latência real do login.
 
 ## Estrutura
 
@@ -62,8 +65,20 @@ npx wrangler d1 migrations apply photo-album --local       # aplicar migration n
   builde o web antes.
 - ESLint flat config não respeita `.gitignore`: diretórios gerados precisam estar em `ignores`
   no `eslint.config.js` (`.wrangler/` já está).
-- Prettier formata `.svelte` via `prettier-plugin-svelte` (root). `eslint-plugin-svelte` ainda
-  não instalado — adicionar no Plano 2 quando houver código Svelte real.
+- Prettier formata `.svelte` via `prettier-plugin-svelte` (root). `eslint-plugin-svelte`
+  instalado no Plano 2: o bloco de parser TS precisa incluir `**/*.svelte.ts`; a regra
+  `svelte/no-navigation-without-resolve` fica desativada (rotas estáticas do SPA).
+- `beforeEach`/`afterEach` do vitest: arrow function com retorno implícito de um mock
+  (chainable) vira cleanup e reinvoca o mock após o teste (unhandled rejection) — usar corpo
+  em bloco (`{ ... }`) sempre que o corpo retornar algo "por acidente".
+- O caminho do repo tem espaço (`Photo Album`): o alias `$lib` no `vitest.config.ts` do web usa
+  `import.meta.dirname`, não `new URL(...).pathname` (que codificaria o espaço como `%20`).
+- `@vite-pwa/sveltekit@1.1` com Vite 7: `kit.spa: true` dá `ENOENT` no `version.json` — usar
+  `kit.spa.fallbackRevision`; `workbox-window` precisa ser dependência runtime (não só dev).
+- `skipLibCheck: true` no `tsconfig` do web silencia erros de `.d.ts` de terceiros
+  (`workbox-core`) — mas também silencia erros em `.d.ts` próprios, então checar manualmente.
+- Testes web em jsdom não cobrem `<canvas>`: `processPhoto` (redimensionar/comprimir foto no
+  navegador) só é verificado manualmente no navegador de verdade.
 
 ## Deploy (GitHub Actions — não ativar o Git integration da Cloudflare!)
 
@@ -74,13 +89,8 @@ apply photo-album --remote` → `wrangler deploy`. Secrets: `CLOUDFLARE_API_TOKE
 - Recursos: Worker `photo-album`, D1 `photo-album` (id no wrangler.jsonc), bucket R2
   `photo-album-photos`. Ativar o "Workers Builds" da Cloudflare causaria deploy duplicado.
 
-## Pendências conhecidas (absorver no Plano 2)
+## Pendências conhecidas (absorver na Task 17)
 
-1. Renovação deslizante de sessão estende o `expiresAt` no D1 mas **não re-emite o cookie** —
-   na prática a sessão do navegador dura 30 dias fixos. Re-setar o cookie no `requireAuth`.
-2. **Medir a latência de `/api/auth/login` em produção**: PBKDF2 100k iterações vs limite de
+1. **Medir a latência de `/api/auth/login` em produção**: PBKDF2 100k iterações vs limite de
    10ms de CPU do plano gratuito. O formato armazenado (`pbkdf2-sha256$<iter>$...`) já suporta
    migrar a contagem se precisar.
-3. `eslint-plugin-svelte` quando o web ganhar código de verdade.
-4. Setup inicial de produção ainda não foi feito (`GET /api/setup` → `needed: true`) — a
-   primeira conta será criada quando o Plano 2 entregar a tela de setup.
