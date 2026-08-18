@@ -3,6 +3,7 @@ import { apiError } from './lib/errors'
 import { authRoutes } from './routes/auth'
 import { setupRoutes } from './routes/setup'
 import { inviteRoutes } from './routes/invites'
+import { albumRoutes } from './routes/albums'
 
 export interface AppVariables {
   user: { id: string; name: string; email: string }
@@ -22,6 +23,7 @@ app.get('/api/health', (c) => c.json({ ok: true }))
 app.route('/api/auth', authRoutes)
 app.route('/api/setup', setupRoutes)
 app.route('/api/invites', inviteRoutes)
+app.route('/api/albums', albumRoutes)
 
 app.notFound((c) => apiError(c, 404, 'not_found', 'Recurso não encontrado'))
 
