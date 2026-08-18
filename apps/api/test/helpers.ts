@@ -40,6 +40,41 @@ export async function setupSpace(
   return { cookie: extractSessionCookie(res), userId: body.user.id, spaceId: body.space.id }
 }
 
+export interface UploadedPhoto {
+  id: string
+  albumId: string | null
+  mime: string
+  width: number
+  height: number
+  sizeBytes: number
+  takenAt: number
+  createdAt: number
+}
+
+export async function uploadPhoto(
+  cookie: string,
+  opts: Partial<{ takenAt: number; albumId: string; mime: string; fileBytes: Uint8Array }> = {},
+): Promise<UploadedPhoto> {
+  const mime = opts.mime ?? 'image/jpeg'
+  // Re-wrap in a fresh Uint8Array<ArrayBuffer>: TS 5.7+ types Uint8Array as
+  // generic over ArrayBufferLike, which File()'s BlobPart parameter rejects.
+  const bytes = new Uint8Array(opts.fileBytes ?? [0xff, 0xd8, 0xff, 0xe0, 1, 2, 3])
+  const form = new FormData()
+  form.set('file', new File([bytes], 'foto.jpg', { type: mime }))
+  form.set('thumb', new File([new Uint8Array([9, 9, 9])], 'thumb.jpg', { type: mime }))
+  form.set('width', '2560')
+  form.set('height', '1440')
+  if (opts.takenAt !== undefined) form.set('takenAt', String(opts.takenAt))
+  if (opts.albumId !== undefined) form.set('albumId', opts.albumId)
+  const res = await SELF.fetch('https://album.test/api/photos', {
+    method: 'POST',
+    headers: { cookie },
+    body: form,
+  })
+  if (res.status !== 201) throw new Error(`upload falhou: ${res.status} ${await res.text()}`)
+  return (await res.json()) as UploadedPhoto
+}
+
 export async function createSecondSpace() {
   const db = getDb(env.DB)
   const now = new Date()
