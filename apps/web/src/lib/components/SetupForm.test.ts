@@ -11,7 +11,11 @@ const session = {
   space: { id: 's1', name: 'Nós dois', role: 'owner' as const },
 }
 
-beforeEach(() => vi.mocked(runSetup).mockReset())
+beforeEach(() => {
+  // Corpo em bloco: ver LoginForm.test.ts — `mockReset()` é chainable e retornar o mock
+  // de um `beforeEach` faz o Vitest tratá-lo como cleanup pós-teste, reinvocando-o sem args.
+  vi.mocked(runSetup).mockReset()
+})
 
 describe('SetupForm', () => {
   it('cria a conta e o espaço e chama onSuccess', async () => {
