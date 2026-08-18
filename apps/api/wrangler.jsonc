@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "photo-album",
-      "database_id": "TODO-TASK-16",
+      "database_id": "eea723ee-8e06-4eeb-8fee-88c41d009378",
       "migrations_dir": "drizzle",
     },
   ],
