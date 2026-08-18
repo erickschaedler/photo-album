@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { and, desc, eq, lt, or } from 'drizzle-orm'
 import {
@@ -192,3 +193,30 @@ photoRoutes.delete('/:id', async (c) => {
   await c.env.PHOTOS.delete([row.r2Key, row.thumbR2Key])
   return c.body(null, 204)
 })
+
+async function servePhotoObject(c: Context<AppEnv>, kind: 'file' | 'thumb') {
+  const db = getDb(c.env.DB)
+  const spaceId = c.get('membership').spaceId
+  const row = await findPhoto(db, spaceId, c.req.param('id') ?? '')
+  if (!row) return apiError(c, 404, 'not_found', 'Foto não encontrada')
+
+  const etag = `"${row.id}-${kind}"`
+  if (c.req.header('if-none-match') === etag) {
+    return c.body(null, 304, {
+      etag,
+      'cache-control': 'private, max-age=31536000, immutable',
+    })
+  }
+
+  const object = await c.env.PHOTOS.get(kind === 'file' ? row.r2Key : row.thumbR2Key)
+  if (!object) return apiError(c, 404, 'not_found', 'Arquivo não encontrado')
+
+  return c.body(object.body, 200, {
+    'content-type': object.httpMetadata?.contentType ?? row.mime,
+    'cache-control': 'private, max-age=31536000, immutable',
+    etag,
+  })
+}
+
+photoRoutes.get('/:id/file', (c) => servePhotoObject(c, 'file'))
+photoRoutes.get('/:id/thumb', (c) => servePhotoObject(c, 'thumb'))
