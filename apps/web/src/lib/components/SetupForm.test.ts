@@ -11,7 +11,9 @@ const session = {
   space: { id: 's1', name: 'Nós dois', role: 'owner' as const },
 }
 
-beforeEach(() => vi.mocked(runSetup).mockReset())
+beforeEach(() => {
+  vi.mocked(runSetup).mockReset()
+})
 
 describe('SetupForm', () => {
   it('cria a conta e o espaço e chama onSuccess', async () => {
