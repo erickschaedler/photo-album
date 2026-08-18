@@ -52,17 +52,17 @@ precisa de SSR/SEO).
 
 ## Stack
 
-| Camada         | Escolha                                                                  |
-| -------------- | ------------------------------------------------------------------------ |
-| Web            | Svelte 5 (runes) + SvelteKit em modo SPA (`adapter-static` com fallback) |
-| Estilo         | Tailwind CSS                                                             |
-| PWA            | `@vite-pwa/sveltekit` (manifest + instalação na home)                    |
-| Dados no front | TanStack Query (`@tanstack/svelte-query`)                                |
-| API            | Hono em Cloudflare Workers                                               |
-| Banco          | D1 via Drizzle ORM (schema tipado + migrations versionadas)              |
-| Fotos          | R2 via binding nativo do Worker                                          |
-| Validação      | Zod, schemas compartilhados em `packages/shared`                         |
-| Monorepo       | pnpm workspaces (sem Turborepo — dois apps não justificam)               |
+| Camada | Escolha |
+|---|---|
+| Web | Svelte 5 (runes) + SvelteKit em modo SPA (`adapter-static` com fallback) |
+| Estilo | Tailwind CSS |
+| PWA | `@vite-pwa/sveltekit` (manifest + instalação na home) |
+| Dados no front | TanStack Query (`@tanstack/svelte-query`) |
+| API | Hono em Cloudflare Workers |
+| Banco | D1 via Drizzle ORM (schema tipado + migrations versionadas) |
+| Fotos | R2 via binding nativo do Worker |
+| Validação | Zod, schemas compartilhados em `packages/shared` |
+| Monorepo | pnpm workspaces (sem Turborepo — dois apps não justificam) |
 
 O SvelteKit é usado só como framework de front (roteamento por arquivos,
 layouts); a API é exclusivamente o Hono em `apps/api`, reusável por qualquer
@@ -193,7 +193,7 @@ originais pode ser adicionada depois.
 
 - **PR:** lint (ESLint + Prettier com plugins Svelte) + typecheck + testes.
 - **Push na `main`:** tudo acima → migrations no D1 remoto → `wrangler
-deploy` (API + build do web num só Worker).
+  deploy` (API + build do web num só Worker).
 - Secrets no GitHub: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 - **README** com passo a passo reproduzível para terceiros: criar bucket R2 e
   banco D1, rodar migrations, deploy.

@@ -29,7 +29,6 @@
 ### Task 1: Scaffold do monorepo
 
 **Files:**
-
 - Modify: `.gitignore`
 - Create: `pnpm-workspace.yaml`
 - Create: `package.json` (raiz)
@@ -40,7 +39,6 @@
 - Create: `README.md`
 
 **Interfaces:**
-
 - Consumes: nada (primeiro task).
 - Produces: workspace pnpm onde `apps/*` e `packages/*` são pacotes; `tsconfig.base.json` que os demais estendem; scripts raiz `lint`, `format`, `typecheck`, `test`.
 
@@ -50,8 +48,8 @@
 
 ```yaml
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - "apps/*"
+  - "packages/*"
 ```
 
 `package.json`:
@@ -119,7 +117,7 @@ export default tseslint.config(
 
 `README.md` (stub — cresce nos tasks seguintes):
 
-````markdown
+```markdown
 # Photo Album
 
 Álbum de fotos colaborativo para casais — PWA na Cloudflare (Workers + D1 + R2).
@@ -128,15 +126,15 @@ Monorepo pnpm: `apps/web` (SvelteKit), `apps/api` (Hono), `packages/shared` (Zod
 
 ## Desenvolvimento
 
-​`bash
+​```bash
 pnpm install
 pnpm test
-​`
+​```
 
 (Instruções completas de deploy chegam junto com o código.)
-````
+```
 
-⚠️ Os fences internos acima começam com um caractere invisível (U+200B) só para caberem dentro deste bloco — no `README.md` real, escrever ` ``` ` puro, sem o caractere.
+⚠️ Os fences internos acima começam com um caractere invisível (U+200B) só para caberem dentro deste bloco — no `README.md` real, escrever ```` ``` ```` puro, sem o caractere.
 
 Acrescentar ao `.gitignore` existente:
 
@@ -165,7 +163,6 @@ git add -A && git commit -m "chore: pnpm monorepo scaffold (workspace, tsconfig,
 ### Task 2: `packages/shared` — schemas Zod e tipos da API
 
 **Files:**
-
 - Create: `packages/shared/package.json`
 - Create: `packages/shared/tsconfig.json`
 - Create: `packages/shared/src/index.ts`
@@ -174,7 +171,6 @@ git add -A && git commit -m "chore: pnpm monorepo scaffold (workspace, tsconfig,
 - Test: `packages/shared/src/schemas.test.ts`
 
 **Interfaces:**
-
 - Consumes: `tsconfig.base.json` do Task 1.
 - Produces: pacote `@photo-album/shared` exportando os schemas Zod (`setupSchema`, `loginSchema`, `acceptInviteSchema`, `createAlbumSchema`, `updateAlbumSchema`, `photoUploadFieldsSchema`, `listPhotosQuerySchema`, `movePhotoSchema`) e os tipos (`ApiUser`, `ApiAlbum`, `ApiPhoto`, `ApiSpace`, `Page<T>`, `ApiErrorBody`). A API (Tasks 7–13) importa tudo daqui.
 
@@ -235,11 +231,7 @@ describe('setupSchema', () => {
 
 describe('photoUploadFieldsSchema', () => {
   it('coage números vindos de multipart (strings)', () => {
-    const r = photoUploadFieldsSchema.parse({
-      width: '2560',
-      height: '1440',
-      takenAt: '1755400000000',
-    })
+    const r = photoUploadFieldsSchema.parse({ width: '2560', height: '1440', takenAt: '1755400000000' })
     expect(r).toMatchObject({ width: 2560, height: 1440, takenAt: 1755400000000 })
   })
 })
@@ -380,7 +372,6 @@ git add packages/ pnpm-lock.yaml && git commit -m "feat: shared zod schemas and 
 ### Task 3: `apps/api` — scaffold Hono + harness de testes no runtime dos Workers
 
 **Files:**
-
 - Create: `apps/api/package.json`
 - Create: `apps/api/tsconfig.json`
 - Create: `apps/api/wrangler.jsonc`
@@ -393,7 +384,6 @@ git add packages/ pnpm-lock.yaml && git commit -m "feat: shared zod schemas and 
 - Test: `apps/api/test/health.test.ts`
 
 **Interfaces:**
-
 - Consumes: `tsconfig.base.json` (Task 1).
 - Produces: app Hono exportado como default em `src/index.ts` com tipo `AppEnv = { Bindings: { DB: D1Database; PHOTOS: R2Bucket }; Variables: AppVariables }`; helper `apiError(c, status, code, message)`; harness de testes onde `SELF.fetch()` bate no Worker real com D1/R2 locais e migrations do diretório `drizzle/` aplicadas automaticamente. Todos os tasks de rota (7–13) usam este harness.
 
@@ -459,11 +449,11 @@ git add packages/ pnpm-lock.yaml && git commit -m "feat: shared zod schemas and 
       "binding": "DB",
       "database_name": "photo-album",
       "database_id": "TODO-TASK-16",
-      "migrations_dir": "drizzle",
-    },
+      "migrations_dir": "drizzle"
+    }
   ],
   "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "photo-album-photos" }],
-  "observability": { "enabled": true },
+  "observability": { "enabled": true }
 }
 ```
 
@@ -611,7 +601,6 @@ git add apps/api pnpm-lock.yaml && git commit -m "feat: api scaffold with hono a
 ### Task 4: Schema Drizzle + primeira migration
 
 **Files:**
-
 - Create: `apps/api/src/db/schema.ts`
 - Create: `apps/api/src/db/index.ts`
 - Create: `apps/api/drizzle.config.ts`
@@ -619,7 +608,6 @@ git add apps/api pnpm-lock.yaml && git commit -m "feat: api scaffold with hono a
 - Test: `apps/api/test/db.test.ts`
 
 **Interfaces:**
-
 - Consumes: harness do Task 3.
 - Produces: `getDb(d1: D1Database)` retornando Drizzle tipado; tabelas exportadas `users`, `sessions`, `spaces`, `spaceMembers`, `invites`, `albums`, `photos` (nomes de coluna camelCase no TS ↔ snake_case no SQL). Todos os tasks seguintes acessam o banco por aqui.
 
@@ -846,12 +834,10 @@ git add apps/api && git commit -m "feat: drizzle schema and initial d1 migration
 ### Task 5: `lib/crypto.ts` — hash de senha e tokens
 
 **Files:**
-
 - Create: `apps/api/src/lib/crypto.ts`
 - Test: `apps/api/test/crypto.test.ts`
 
 **Interfaces:**
-
 - Consumes: harness do Task 3.
 - Produces:
   - `hashPassword(password: string): Promise<string>` → formato `pbkdf2-sha256$100000$<salt b64url>$<hash b64url>`
@@ -859,7 +845,7 @@ git add apps/api && git commit -m "feat: drizzle schema and initial d1 migration
   - `generateToken(): string` — 32 bytes aleatórios em base64url (sem padding)
   - `sha256Hex(input: string): Promise<string>` — hex minúsculo
   - `newId(): string` — `crypto.randomUUID()`
-    Tasks 6, 7, 9 usam tudo isso.
+  Tasks 6, 7, 9 usam tudo isso.
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -1002,14 +988,12 @@ git add apps/api/src/lib/crypto.ts apps/api/test/crypto.test.ts && git commit -m
 ### Task 6: Sessões + middleware `requireAuth`
 
 **Files:**
-
 - Create: `apps/api/src/lib/sessions.ts`
 - Create: `apps/api/src/middleware/auth.ts`
 - Modify: `apps/api/src/index.ts` (registrar rota de teste não é necessário — o middleware é testado no Task 7 via rotas reais; aqui testamos as funções puras)
 - Test: `apps/api/test/sessions.test.ts`
 
 **Interfaces:**
-
 - Consumes: `getDb` (Task 4); `generateToken`, `sha256Hex`, `newId` (Task 5).
 - Produces:
   - `SESSION_COOKIE = 'session'`, `SESSION_TTL_MS = 30 dias`, `SESSION_RENEW_THRESHOLD_MS = 15 dias`
@@ -1047,9 +1031,7 @@ async function seedUser(db: ReturnType<typeof getDb>) {
     createdAt: now,
   })
   await db.insert(spaces).values({ id: 's1', name: 'Nós', createdAt: now })
-  await db
-    .insert(spaceMembers)
-    .values({ spaceId: 's1', userId: 'u1', role: 'owner', joinedAt: now })
+  await db.insert(spaceMembers).values({ spaceId: 's1', userId: 'u1', role: 'owner', joinedAt: now })
 }
 
 describe('sessions', () => {
@@ -1223,14 +1205,12 @@ git add apps/api/src apps/api/test && git commit -m "feat: d1-backed sessions wi
 ### Task 7: Rotas de setup (`GET/POST /api/setup`) + helpers de teste
 
 **Files:**
-
 - Create: `apps/api/src/routes/setup.ts`
 - Modify: `apps/api/src/index.ts` (montar a rota)
 - Create: `apps/api/test/helpers.ts`
 - Test: `apps/api/test/setup.test.ts`
 
 **Interfaces:**
-
 - Consumes: `setupSchema` (Task 2); `getDb` (4); `hashPassword`, `newId` (5); `createSession`, `sessionCookieOptions`, `SESSION_COOKIE` (6); `apiError` (3).
 - Produces:
   - `GET /api/setup` → 200 `{ needed: boolean }` (público)
@@ -1414,7 +1394,9 @@ setupRoutes.post(
       createdAt: now,
     })
     await db.insert(spaces).values({ id: spaceId, name: spaceName, createdAt: now })
-    await db.insert(spaceMembers).values({ spaceId, userId, role: 'owner', joinedAt: now })
+    await db
+      .insert(spaceMembers)
+      .values({ spaceId, userId, role: 'owner', joinedAt: now })
 
     const { token, expiresAt } = await createSession(db, userId)
     setCookie(c, SESSION_COOKIE, token, sessionCookieOptions(expiresAt))
@@ -1455,13 +1437,11 @@ git add apps/api/src apps/api/test && git commit -m "feat: first-run setup endpo
 ### Task 8: Rotas de auth (`/api/auth/login`, `/logout`, `/me`)
 
 **Files:**
-
 - Create: `apps/api/src/routes/auth.ts`
 - Modify: `apps/api/src/index.ts` (montar a rota)
 - Test: `apps/api/test/auth.test.ts`
 
 **Interfaces:**
-
 - Consumes: `loginSchema` (Task 2); `getDb` (4); `verifyPassword` (5); `createSession`, `deleteSessionByToken`, `sessionCookieOptions`, `SESSION_COOKIE` (6); `requireAuth` (6); helpers de teste (7).
 - Produces:
   - `POST /api/auth/login` body `loginSchema` → 200 `{ user: ApiUser, space: ApiSpace }` + Set-Cookie; credencial errada → 401 `code: "invalid_credentials"` (mesma resposta para e-mail inexistente e senha errada)
@@ -1639,13 +1619,11 @@ git add apps/api/src apps/api/test && git commit -m "feat: login, logout and me 
 ### Task 9: Convites (`/api/invites`)
 
 **Files:**
-
 - Create: `apps/api/src/routes/invites.ts`
 - Modify: `apps/api/src/index.ts` (montar a rota)
 - Test: `apps/api/test/invites.test.ts`
 
 **Interfaces:**
-
 - Consumes: `acceptInviteSchema` (Task 2); `getDb` (4); `generateToken`, `sha256Hex`, `hashPassword`, `newId` (5); sessões/`requireAuth` (6); helpers (7).
 - Produces:
   - `POST /api/invites` (autenticada, **owner only** → member recebe 403 `code: "forbidden"`) → 201 `{ token: string, url: string, expiresAt: number }` com `url = "/invite/" + token` e validade de 7 dias (`INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000` exportado)
@@ -1690,10 +1668,7 @@ describe('invites', () => {
       password: 'senha-dela-123',
     })
     expect(res.status).toBe(201)
-    const body = (await res.json()) as {
-      user: { email: string }
-      space: { id: string; role: string }
-    }
+    const body = (await res.json()) as { user: { email: string }; space: { id: string; role: string } }
     expect(body.user.email).toBe('ela@x.co')
     expect(body.space).toMatchObject({ id: spaceId, role: 'member' })
 
@@ -1848,11 +1823,7 @@ inviteRoutes.post(
     if (!row) return apiError(c, 404, 'not_found', 'Convite inválido ou expirado')
 
     const { name, email, password } = c.req.valid('json')
-    const existing = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
+    const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
     if (existing.length > 0) return apiError(c, 409, 'email_in_use', 'E-mail já cadastrado')
 
     const now = new Date()
@@ -1906,13 +1877,11 @@ git add apps/api/src apps/api/test && git commit -m "feat: single-use invite flo
 ### Task 10: Álbuns (`/api/albums`)
 
 **Files:**
-
 - Create: `apps/api/src/routes/albums.ts`
 - Modify: `apps/api/src/index.ts` (montar a rota)
 - Test: `apps/api/test/albums.test.ts`
 
 **Interfaces:**
-
 - Consumes: `createAlbumSchema`, `updateAlbumSchema` (Task 2); `getDb` (4); `newId` (5); `requireAuth` (6); helpers (7).
 - Produces (todas autenticadas):
   - `GET /api/albums` → 200 `{ items: ApiAlbum[] }` ordenado por `createdAt` desc, com `photoCount` (LEFT JOIN + count)
@@ -1976,9 +1945,7 @@ describe('albums', () => {
     const intruder = await createSecondSpace()
     const list = await getJson('/api/albums', intruder.cookie)
     expect(((await list.json()) as { items: unknown[] }).items).toHaveLength(0)
-    expect(
-      (await patchJson(`/api/albums/${album.id}`, { title: 'hack' }, intruder.cookie)).status,
-    ).toBe(404)
+    expect((await patchJson(`/api/albums/${album.id}`, { title: 'hack' }, intruder.cookie)).status).toBe(404)
     expect((await del(`/api/albums/${album.id}`, intruder.cookie)).status).toBe(404)
   })
 
@@ -1986,11 +1953,7 @@ describe('albums', () => {
     const { cookie } = await setupSpace()
     const created = await postJson('/api/albums', { title: 'Capa' }, cookie)
     const album = (await created.json()) as { id: string }
-    const res = await patchJson(
-      `/api/albums/${album.id}`,
-      { coverPhotoId: 'foto-inexistente' },
-      cookie,
-    )
+    const res = await patchJson(`/api/albums/${album.id}`, { coverPhotoId: 'foto-inexistente' }, cookie)
     expect(res.status).toBe(400)
   })
 
@@ -2173,7 +2136,6 @@ git add apps/api/src apps/api/test && git commit -m "feat: album crud with space
 ### Task 11: Upload de fotos (`POST /api/photos`)
 
 **Files:**
-
 - Create: `apps/api/src/routes/photos.ts` (só o POST neste task)
 - Create: `apps/api/src/lib/r2.ts`
 - Modify: `apps/api/src/index.ts` (montar a rota)
@@ -2181,7 +2143,6 @@ git add apps/api/src apps/api/test && git commit -m "feat: album crud with space
 - Test: `apps/api/test/photos-upload.test.ts`
 
 **Interfaces:**
-
 - Consumes: `photoUploadFieldsSchema` (Task 2); `getDb` (4); `newId` (5); `requireAuth` (6); helpers (7).
 - Produces:
   - `photoKeys(spaceId: string, photoId: string)` → `{ file: "spaces/<spaceId>/photos/<photoId>/original", thumb: "spaces/<spaceId>/photos/<photoId>/thumb" }` (em `lib/r2.ts`)
@@ -2458,13 +2419,11 @@ git add apps/api/src apps/api/test && git commit -m "feat: photo upload storing 
 ### Task 12: Listagem paginada, mover para álbum e excluir foto
 
 **Files:**
-
 - Modify: `apps/api/src/routes/photos.ts`
 - Create: `apps/api/src/lib/cursor.ts`
 - Test: `apps/api/test/photos-list.test.ts`
 
 **Interfaces:**
-
 - Consumes: `listPhotosQuerySchema`, `movePhotoSchema` (Task 2); `uploadPhoto`, `createSecondSpace` e demais helpers (7/11); `photoKeys` (11).
 - Produces:
   - `encodeCursor(takenAt: number, id: string): string` / `decodeCursor(cursor: string): { takenAt: number; id: string } | null` em `lib/cursor.ts` (base64url de `JSON.stringify([takenAt, id])`; decode inválido → `null`)
@@ -2730,12 +2689,10 @@ git add apps/api/src apps/api/test && git commit -m "feat: keyset-paginated phot
 ### Task 13: Servir arquivos (`GET /api/photos/:id/file` e `/thumb`)
 
 **Files:**
-
 - Modify: `apps/api/src/routes/photos.ts`
 - Test: `apps/api/test/photos-serve.test.ts`
 
 **Interfaces:**
-
 - Consumes: `findPhoto` (12); `uploadPhoto`, `createSecondSpace` (helpers); `photoKeys` (11).
 - Produces:
   - `GET /api/photos/:id/file` e `GET /api/photos/:id/thumb` (autenticadas) → 200 com corpo do R2, `Content-Type` do metadata, `Cache-Control: private, max-age=31536000, immutable`, `ETag: "<photoId>-file"` / `"<photoId>-thumb"`
@@ -2858,7 +2815,6 @@ git add apps/api/src apps/api/test && git commit -m "feat: serve photo files and
 ### Task 14: Shell mínimo do `apps/web` (SvelteKit SPA) + assets no Worker
 
 **Files:**
-
 - Create: `apps/web/package.json`
 - Create: `apps/web/svelte.config.js`
 - Create: `apps/web/vite.config.ts`
@@ -2870,7 +2826,6 @@ git add apps/api/src apps/api/test && git commit -m "feat: serve photo files and
 - Modify: `apps/api/wrangler.jsonc` (adicionar o bloco `assets`)
 
 **Interfaces:**
-
 - Consumes: workspace (Task 1); wrangler.jsonc (3).
 - Produces: `pnpm --filter @photo-album/web build` gera `apps/web/build/` com `index.html`; o Worker passa a servir esse build (binding `ASSETS`, SPA fallback, `run_worker_first: ["/api/*"]`). O Plano 2 constrói o app de verdade em cima deste shell — Tailwind, PWA e TanStack Query entram lá.
 
@@ -3027,11 +2982,9 @@ git add apps/web apps/api/wrangler.jsonc pnpm-lock.yaml && git commit -m "feat: 
 ### Task 15: CI no GitHub Actions
 
 **Files:**
-
 - Create: `.github/workflows/ci.yml`
 
 **Interfaces:**
-
 - Consumes: scripts raiz `lint`/`typecheck`/`test` (Task 1) e builds dos pacotes.
 - Produces: workflow `CI` rodando em PRs e pushes na `main`: install → lint → build do web (o typecheck do web precisa do `svelte-kit sync`, que o build garante) → typecheck → testes.
 
@@ -3080,13 +3033,11 @@ git add .github && git commit -m "ci: lint, typecheck, build and tests on pull r
 ### Task 16: Provisionar Cloudflare, deploy e README
 
 **Files:**
-
 - Create: `.github/workflows/deploy.yml`
 - Modify: `apps/api/wrangler.jsonc` (preencher `database_id` real)
 - Modify: `README.md` (instruções completas)
 
 **Interfaces:**
-
 - Consumes: tudo anterior.
 - Produces: Worker `photo-album` no ar em `https://photo-album.<subdomínio>.workers.dev`, com D1 migrado e R2 conectado; deploy automático a cada push na `main`; README reproduzível por terceiros.
 
@@ -3172,7 +3123,7 @@ jobs:
 
 Substituir o `README.md` por:
 
-````markdown
+```markdown
 # Photo Album
 
 Álbum de fotos colaborativo para casais — PWA rodando inteiro na Cloudflare
@@ -3189,13 +3140,13 @@ front (SvelteKit); as fotos ficam num bucket R2 privado.
 
 Pré-requisitos: Node 22+, pnpm 10+.
 
-​`bash
+​```bash
 pnpm install
 pnpm --filter @photo-album/api exec wrangler d1 migrations apply photo-album --local
 pnpm --filter @photo-album/api dev   # API em :8787 (D1/R2 locais)
 pnpm --filter @photo-album/web dev   # front em :5173, proxy de /api
 pnpm test                            # suíte completa
-​`
+​```
 
 ## Subindo a sua instância
 
@@ -3213,9 +3164,9 @@ pnpm test                            # suíte completa
 Para deploy automático a cada push, configure os secrets
 `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no GitHub (workflow em
 `.github/workflows/deploy.yml`).
-````
+```
 
-⚠️ Mesmo aviso do Task 1: os fences internos acima têm um U+200B na frente só para caberem neste bloco — no `README.md` real, usar ` ``` ` puro.
+⚠️ Mesmo aviso do Task 1: os fences internos acima têm um U+200B na frente só para caberem neste bloco — no `README.md` real, usar ```` ``` ```` puro.
 
 - [ ] **Step 6: Commit, push e verificação final**
 
