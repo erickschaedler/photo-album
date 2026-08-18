@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "photo-album",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "photo-album",
+      "database_id": "TODO-TASK-16",
+      "migrations_dir": "drizzle",
+    },
+  ],
+  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "photo-album-photos" }],
+  "observability": { "enabled": true },
+}

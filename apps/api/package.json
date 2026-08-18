@@ -1,0 +1,28 @@
+{
+  "name": "@photo-album/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@photo-album/shared": "workspace:*",
+    "@hono/zod-validator": "^0.9.0",
+    "drizzle-orm": "^0.45.0",
+    "hono": "^4.9.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.21.0",
+    "@cloudflare/workers-types": "^5.20260801.0",
+    "@types/node": "^22.15.0",
+    "drizzle-kit": "^0.31.0",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.30.0"
+  }
+}
