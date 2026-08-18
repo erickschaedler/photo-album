@@ -1,5 +1,10 @@
 # Photo Album — Plano 1: Fundação do monorepo + API Implementation Plan
 
+> **STATUS: ✅ EXECUTADO E NO AR (18/08/2026).** Todos os 16 tasks concluídos via
+> subagent-driven-development com review por task + review final de branch; produção em
+> https://photo-album.photo-album-api.workers.dev com CI/Deploy verdes. Este documento é
+> registro histórico — o estado vivo do projeto está em `CLAUDE.md` na raiz.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Monorepo pnpm com API Hono completa (auth, convites, álbuns, fotos com R2), testada de ponta a ponta no runtime real dos Workers, com shell mínimo do web e CI/deploy funcionando.
