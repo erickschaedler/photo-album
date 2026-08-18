@@ -17,5 +17,11 @@
     "typescript-eslint": "^8.39.0",
     "prettier": "^3.6.0",
     "typescript": "^5.9.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
   }
 }
