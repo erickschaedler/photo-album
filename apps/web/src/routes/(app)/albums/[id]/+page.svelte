@@ -77,6 +77,10 @@
 
 {#if albums.isPending}
   <div class="pt-16"><Carregando /></div>
+{:else if albums.isError}
+  <p class="px-6 pt-24 text-center text-texto-suave">
+    Não deu para carregar o álbum. Verifique a conexão e recarregue a página.
+  </p>
 {:else if !album}
   <div class="px-6 pt-24 text-center">
     <h1 class="font-display text-2xl italic">Álbum não encontrado</h1>
@@ -145,6 +149,10 @@
 
   {#if photosQuery.isPending}
     <Carregando />
+  {:else if photosQuery.isError}
+    <p class="px-6 pt-16 text-center text-texto-suave">
+      Não deu para carregar as fotos. Verifique a conexão e recarregue a página.
+    </p>
   {:else if photos.length === 0}
     <p class="px-6 pt-16 text-center text-texto-suave">
       Nenhuma foto neste álbum ainda. Envie fotos escolhendo este álbum, ou mova pela linha do
