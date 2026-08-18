@@ -95,7 +95,7 @@ albumRoutes.patch(
     if (!existing) return apiError(c, 404, 'not_found', 'Álbum não encontrado')
 
     const patch = c.req.valid('json')
-    if (patch.coverPhotoId) {
+    if (patch.coverPhotoId != null) {
       const [photo] = await db
         .select({ id: photos.id })
         .from(photos)
