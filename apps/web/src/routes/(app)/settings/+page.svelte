@@ -43,7 +43,7 @@
       <p class="text-texto">{me.data.user.name}</p>
       <p class="text-sm text-texto-suave">{me.data.user.email}</p>
       <p class="mt-2 font-mono text-xs text-texto-suave">
-        espaço "{me.data.space.name}" · {me.data.space.role === 'owner' ? 'dono' : 'membro'}
+        espaço “{me.data.space.name}” · {me.data.space.role === 'owner' ? 'dono' : 'membro'}
       </p>
     </section>
 

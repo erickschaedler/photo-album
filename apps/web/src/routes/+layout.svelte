@@ -25,11 +25,19 @@
       registerSW({ immediate: true })
     }
   })
+
+  const manifestHref = $derived(
+    pwaInfo
+      ? pwaInfo.webManifest.href.startsWith('/')
+        ? pwaInfo.webManifest.href
+        : `/${pwaInfo.webManifest.href}`
+      : '',
+  )
 </script>
 
 <svelte:head>
   {#if pwaInfo}
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href={manifestHref} />
   {/if}
 </svelte:head>
 

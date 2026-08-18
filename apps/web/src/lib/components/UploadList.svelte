@@ -18,10 +18,15 @@
       <li
         class="flex items-center justify-between gap-3 rounded-lg bg-superficie px-3 py-2 text-sm"
       >
-        <span class="truncate text-texto">{item.file.name}</span>
+        <span class="min-w-0 flex-1 pr-3">
+          <span class="block truncate text-texto">{item.file.name}</span>
+          {#if item.status === 'error' && item.error}
+            <span class="block truncate text-xs text-texto-suave">{item.error}</span>
+          {/if}
+        </span>
         {#if item.status === 'error'}
           <span class="flex shrink-0 items-center gap-3">
-            <span class="text-erro" title={item.error}>{labels.error}</span>
+            <span class="text-erro">{labels.error}</span>
             <button type="button" onclick={() => onRetry(item.id)} class="text-ambar">
               Tentar de novo
             </button>
