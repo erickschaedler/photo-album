@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { apiError } from './lib/errors'
+import { setupRoutes } from './routes/setup'
 
 export interface AppVariables {
   user: { id: string; name: string; email: string }
@@ -15,6 +16,8 @@ export type AppEnv = {
 const app = new Hono<AppEnv>()
 
 app.get('/api/health', (c) => c.json({ ok: true }))
+
+app.route('/api/setup', setupRoutes)
 
 app.notFound((c) => apiError(c, 404, 'not_found', 'Recurso não encontrado'))
 
