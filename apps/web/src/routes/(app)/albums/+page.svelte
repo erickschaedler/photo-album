@@ -37,7 +37,7 @@
     <form
       onsubmit={(e) => {
         e.preventDefault()
-        if (title.trim()) create.mutate()
+        if (title.trim() && !create.isPending) create.mutate()
       }}
       class="mt-4 flex gap-2"
     >
