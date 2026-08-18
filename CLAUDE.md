@@ -69,7 +69,7 @@ npx wrangler d1 migrations apply photo-album --local       # aplicar migration n
 
 - PR/push → workflow **CI** (lint, build web, typecheck, testes).
 - Push na `main` → workflow **Deploy**: mesmas checagens como portão → `wrangler d1 migrations
-  apply photo-album --remote` → `wrangler deploy`. Secrets: `CLOUDFLARE_API_TOKEN`,
+apply photo-album --remote` → `wrangler deploy`. Secrets: `CLOUDFLARE_API_TOKEN`,
   `CLOUDFLARE_ACCOUNT_ID` (já configurados no repo).
 - Recursos: Worker `photo-album`, D1 `photo-album` (id no wrangler.jsonc), bucket R2
   `photo-album-photos`. Ativar o "Workers Builds" da Cloudflare causaria deploy duplicado.
