@@ -66,6 +66,14 @@ describe('albums', () => {
     expect(res.status).toBe(400)
   })
 
+  it('coverPhotoId vazio (string vazia) → 400', async () => {
+    const { cookie } = await setupSpace()
+    const created = await postJson('/api/albums', { title: 'Capa vazia' }, cookie)
+    const album = (await created.json()) as { id: string }
+    const res = await patchJson(`/api/albums/${album.id}`, { coverPhotoId: '' }, cookie)
+    expect(res.status).toBe(400)
+  })
+
   it('sem sessão → 401', async () => {
     expect((await getJson('/api/albums')).status).toBe(401)
   })
