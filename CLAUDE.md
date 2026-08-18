@@ -10,12 +10,12 @@ estáticos no resto.
 
 - **Produção:** https://photo-album.photo-album-api.workers.dev
 - **Spec da v1:** `docs/superpowers/specs/2026-08-17-photo-album-design.md`
-- **Status:** Plano 1 (fundação + API) concluído em 18/08/2026. Plano 2 (PWA de verdade)
-  concluído em 18/08/2026 — telas de auth (setup/login/convite), timeline agrupada por mês,
-  upload com fila e processamento de imagem no navegador, álbuns (criar/renomear/excluir/capa),
-  ajustes (perfil, convite, logout) e PWA instalável (manifest + service worker via
-  `@vite-pwa/sveltekit`). Falta deploy/produção — **Task 17**: rodar o setup inicial no Worker
-  de produção e medir a latência real do login.
+- **Status:** Plano 1 (fundação + API) e Plano 2 (PWA de verdade) concluídos e **no ar** em
+  18/08/2026 — telas de auth (setup/login/convite), timeline agrupada por mês, upload com fila
+  e processamento de imagem no navegador, álbuns (criar/renomear/excluir/capa), ajustes
+  (perfil, convite, logout) e PWA instalável (manifest + service worker via
+  `@vite-pwa/sveltekit`). Setup de produção feito (primeira conta criada) e latência de login
+  medida — v1 completa.
 
 ## Estrutura
 
@@ -91,8 +91,15 @@ apply photo-album --remote` → `wrangler deploy`. Secrets: `CLOUDFLARE_API_TOKE
 - Recursos: Worker `photo-album`, D1 `photo-album` (id no wrangler.jsonc), bucket R2
   `photo-album-photos`. Ativar o "Workers Builds" da Cloudflare causaria deploy duplicado.
 
-## Pendências conhecidas (absorver na Task 17)
+## Pendências conhecidas
 
-1. **Medir a latência de `/api/auth/login` em produção**: PBKDF2 100k iterações vs limite de
-   10ms de CPU do plano gratuito. O formato armazenado (`pbkdf2-sha256$<iter>$...`) já suporta
-   migrar a contagem se precisar.
+1. ~~Medir a latência de `/api/auth/login` em produção~~ — **medida em 18/08/2026**: 5 logins
+   com verificação de senha → 401 em ~0,29–0,43s de wall time, sem erro de CPU (o setup de
+   produção também rodou o `hashPassword` de 100k iterações sem estourar o limite). PBKDF2 100k
+   fica; o formato `pbkdf2-sha256$<iter>$...` segue disponível se um dia precisar migrar.
+2. Follow-ups aceitos na revisão final do Plano 2 (nenhum urgente): passe de acessibilidade
+   (focus trap no PhotoViewer, nomes acessíveis nas thumbs, `aria-expanded`/`aria-busy`),
+   redirect 401 global no `apiFetch`, extrair o sentinel de scroll infinito duplicado
+   (timeline + álbum), reavaliar reativar `svelte/no-navigation-without-resolve` (ver
+   comentário no `eslint.config.js`) e teste de regressão para renovação+logout no mesmo
+   request.
