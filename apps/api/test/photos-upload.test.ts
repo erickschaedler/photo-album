@@ -1,6 +1,6 @@
 import { SELF, env } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
-import { postJson, setupSpace, uploadPhoto } from './helpers'
+import { createSecondSpace, postJson, setupSpace, uploadPhoto } from './helpers'
 import { photoKeys } from '../src/lib/r2'
 
 describe('POST /api/photos', () => {
@@ -67,5 +67,15 @@ describe('POST /api/photos', () => {
 
     const anon = await SELF.fetch('https://album.test/api/photos', { method: 'POST', body: form })
     expect(anon.status).toBe(401)
+  })
+
+  it('albumId de um álbum real de outro espaço → 400 (isolamento entre tenants)', async () => {
+    const { cookie } = await setupSpace()
+    const intruder = await createSecondSpace()
+    const created = await postJson('/api/albums', { title: 'Álbum da intrusa' }, intruder.cookie)
+    expect(created.status).toBe(201)
+    const foreignAlbum = (await created.json()) as { id: string }
+
+    await expect(uploadPhoto(cookie, { albumId: foreignAlbum.id })).rejects.toThrow(/400/)
   })
 })
