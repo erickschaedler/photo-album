@@ -1,8 +1,10 @@
 <script lang="ts">
   import { createInfiniteQuery } from '@tanstack/svelte-query'
+  import type { ApiPhoto } from '@photo-album/shared'
   import { listPhotos, photoThumbUrl } from '$lib/api/photos'
   import { groupByMonth } from '$lib/timeline/group'
   import Carregando from '$lib/components/Carregando.svelte'
+  import PhotoViewer from '$lib/components/PhotoViewer.svelte'
 
   const query = createInfiniteQuery(() => ({
     queryKey: ['photos', 'timeline'],
@@ -14,6 +16,7 @@
   const photos = $derived(query.data ? query.data.pages.flatMap((p) => p.items) : [])
   const groups = $derived(groupByMonth(photos))
 
+  let selected = $state<ApiPhoto | null>(null)
   let sentinel = $state<HTMLElement | null>(null)
   $effect(() => {
     if (!sentinel) return
@@ -52,18 +55,26 @@
       </h2>
       <div class="grid grid-cols-3 gap-0.5">
         {#each group.photos as photo (photo.id)}
-          <div class="aspect-square overflow-hidden bg-superficie">
+          <button
+            type="button"
+            onclick={() => (selected = photo)}
+            class="aspect-square overflow-hidden bg-superficie"
+          >
             <img
               src={photoThumbUrl(photo.id)}
               alt=""
               loading="lazy"
               class="h-full w-full object-cover"
             />
-          </div>
+          </button>
         {/each}
       </div>
     </section>
   {/each}
   <div bind:this={sentinel} class="h-1"></div>
   {#if query.isFetchingNextPage}<Carregando />{/if}
+{/if}
+
+{#if selected}
+  <PhotoViewer photo={selected} onClose={() => (selected = null)} />
 {/if}
