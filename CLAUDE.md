@@ -30,7 +30,7 @@ docs/           Spec e planos de implementação
 
 ```bash
 pnpm install
-pnpm test                                  # suíte completa (api + shared)
+pnpm test                                  # suíte completa (api + web + shared)
 pnpm typecheck && pnpm lint
 pnpm --filter @photo-album/web build       # OBRIGATÓRIO antes de wrangler dev (assets)
 pnpm --filter @photo-album/api dev         # API em :8787 com D1/R2 locais (Miniflare)
